@@ -24,16 +24,13 @@ public class OrderService {
     private final WebClient webClient;
 
     public void placeOrder(OrderRequest orderRequest) {
-
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
-
         List<OrderItems> orderItems = orderRequest.getOrderItemsDtoList()
                 .stream()
                 .map(this::mapToDto)
                 .toList();
         order.setOrderItemsList(orderItems);
-
         List<String> skuCodes = order.getOrderItemsList().stream()
                 .map(OrderItems::getSkuCode)
                 .toList();
