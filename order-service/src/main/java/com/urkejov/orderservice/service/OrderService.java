@@ -18,10 +18,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
-
 public class OrderService {
 
     private final OrderRepository orderRepository;
+
     private final WebClient webClient;
 
     public void placeOrder(OrderRequest orderRequest) {
