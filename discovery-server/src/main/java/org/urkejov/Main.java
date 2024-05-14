@@ -7,7 +7,3 @@ public class Main {
     }
 
 }
-@Bean
-public static void accelerate(){
-
-}
