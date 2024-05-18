@@ -10,10 +10,4 @@ public class OrderServiceApplication {
         SpringApplication.run(OrderServiceApplication.class, args);
     }
 
-    public static String message(String message) {
-        if (message == null) {
-            display(message)
-        }else return null;
-
-    }
 }
