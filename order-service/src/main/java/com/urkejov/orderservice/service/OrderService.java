@@ -28,7 +28,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
-        List<OrderItems> orderItems = orderRequest.getOrderItemsDtoList()z
+        List<OrderItems> orderItems = orderRequest.getOrderItemsDtoList()
                 .stream()
                 .map(this::mapToDto)
                 .toList();
