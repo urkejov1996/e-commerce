@@ -18,51 +18,47 @@ public class User {
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     @Column(name = "id", nullable = false)
     private String id;
+
     @Column(name = "first_name")
     private String firstName;
+
     @Column(name = "last_name")
     private String lastName;
+
     @Column(name = "username")
     private String username;
+
     @Column(name = "email")
     private String email;
+
     @Column(name = "phone_number")
     private String phoneNumber;
-    @Column(name = "oib")
-    private String oib;
+
     @Column(name = "notes")
     private String notes;
-    @Column(name = "api_key")
-    private String apiKey;
+
     @Column(name = "firebase_uid")
     private String firebaseUid;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private UserStatusEnum userStatus;
-    @ManyToOne
-    @JoinColumn(name = "country_id")
-    private Country country;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private UserRoleEnum userRole;
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
-    private Employee employee;
-    @ManyToOne
-    @JoinColumn(name = "office_id")
-    private Office office;
-    @ManyToOne
-    @JoinColumn(name = "register_id")
-    private Register register;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
     @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate;
-
 
     @PrePersist
     private void prePersist() {
