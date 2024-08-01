@@ -1,5 +1,12 @@
 package org.urkejov.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.Hibernate;
+import org.hibernate.annotations.GenericGenerator;
+import org.urkejov.tools.enums.UserRoleEnum;
+import org.urkejov.tools.enums.UserStatusEnum;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
