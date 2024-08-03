@@ -1,6 +1,16 @@
-package org.urkejov.dto;
+package org.urkejov.dto.request;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.urkejov.tools.enums.UserRoleEnum;
+import org.urkejov.tools.enums.UserStatusEnum;
 
 import java.util.List;
+
 
 @Data
 @Builder
@@ -21,7 +31,7 @@ public class UserRequest {
     @NotNull
     private UserStatusEnum status;
     @NotNull
-    @NotNull
     private List<UserRoleEnum> roles;
+    @NotNull
     private String password;
 }
