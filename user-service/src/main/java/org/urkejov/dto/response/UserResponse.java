@@ -39,6 +39,9 @@ public class UserResponse {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> errors = new ArrayList<>();
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<UserResponse> data = new ArrayList<>();
+
     public void addInfo(String info) {
         if (this.info == null) {
             this.info = new ArrayList<>();

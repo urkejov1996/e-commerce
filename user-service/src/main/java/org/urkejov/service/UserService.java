@@ -4,14 +4,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.urkejov.dto.response.UserResponse;
 import org.urkejov.entity.User;
 import org.urkejov.repository.UserRepository;
+import org.urkejov.tools.ErrorMessage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +49,38 @@ public class UserService {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public ResponseEntity<?> getAllUsers(Optional<Integer> size, Optional<String> sortBy, Optional<Integer> page) {
+        UserResponse userResponse = new UserResponse();
+        try {
+            Page<User> users = userRepository.findAll(
+                    PageRequest.of(
+                            page.orElse(0),
+                            size.orElse(10),
+                            Sort.Direction.DESC, sortBy.orElse("createdAt")
+                    )
+            );
+            if (page.isPresent() && page.get() >= users.getTotalPages()) {
+                userResponse.addError(ErrorMessage.NOT_FOUND);
+                return new ResponseEntity<>(userResponse, HttpStatus.NOT_FOUND);
+            }
+            if (users.isEmpty()) {
+                userResponse.addInfo("There are no users yet");
+                userResponse.setData(new ArrayList<>());
+                return new ResponseEntity<>(userResponse, HttpStatus.OK);
+            }
+            List<UserResponse> userResponses = users.stream()
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+
+            userResponse.setData(userResponses);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("An error occurred while retrieving all users: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     private UserResponse mapToDto(User user) {
         return UserResponse.builder()
