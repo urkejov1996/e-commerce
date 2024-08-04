@@ -1,6 +1,9 @@
 package org.urkejov.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -12,9 +15,11 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public ResponseEntity<?> getUser(String userId) {
         UserResponse userResponse = new UserResponse();
@@ -33,7 +38,7 @@ public class UserService {
             userResponse.addError("Invalid user ID");
             return new ResponseEntity<>(userResponse.getErrors(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("An error occurred while retrieving the user with ID: {}", userId, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
