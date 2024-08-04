@@ -27,6 +27,12 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    /**
+     * Retrieves a user by their ID.
+     *
+     * @param userId the ID of the user to retrieve
+     * @return ResponseEntity containing the user data or an error message
+     */
     public ResponseEntity<?> getUser(String userId) {
         UserResponse userResponse = new UserResponse();
         try {
