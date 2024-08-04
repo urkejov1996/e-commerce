@@ -26,12 +26,11 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public ResponseEntity<?> getUser(String userId) {
         UserResponse userResponse = new UserResponse();
         try {
-            if (userId != null) {
+            if (userId != null && !userId.isEmpty()) {
                 Optional<User> optionalUser = userRepository.findById(userId);
                 if (optionalUser.isEmpty()) {
                     userResponse.addError("User not found.");
@@ -45,11 +44,19 @@ public class UserService {
             userResponse.addError("Invalid user ID");
             return new ResponseEntity<>(userResponse.getErrors(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            logger.error("An error occurred while retrieving the user with ID: {}", userId, e);
+            log.error("An error occurred while retrieving the user with ID: {}", userId, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves all users with optional pagination and sorting.
+     *
+     * @param size   the number of users per page
+     * @param sortBy the attribute to sort by
+     * @param page   the page number to retrieve
+     * @return ResponseEntity containing the list of users or an error message
+     */
     public ResponseEntity<?> getAllUsers(Optional<Integer> size, Optional<String> sortBy, Optional<Integer> page) {
         UserResponse userResponse = new UserResponse();
         try {
@@ -74,14 +81,19 @@ public class UserService {
                     .collect(Collectors.toList());
 
             userResponse.setData(userResponses);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>(userResponse, HttpStatus.OK);
         } catch (Exception e) {
-            logger.error("An error occurred while retrieving all users: {}", e.getMessage(), e);
+            log.error("An error occurred while retrieving all users: {}", e.getMessage(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
+    /**
+     * Maps a User entity to a UserResponse DTO.
+     *
+     * @param user the user entity to map
+     * @return the mapped UserResponse DTO
+     */
     private UserResponse mapToDto(User user) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -100,6 +112,4 @@ public class UserService {
                 .lastLoginDate(user.getLastLoginDate())
                 .build();
     }
-
-
 }
