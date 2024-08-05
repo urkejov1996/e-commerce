@@ -168,11 +168,17 @@ public class UserService {
         }
     }
 
-
+    /**
+     * Updates a user's information based on the provided UserRequest data.
+     *
+     * @param userId      the ID of the user to update
+     * @param userRequest the request object containing updated user details
+     * @return ResponseEntity containing the updated user data or an error message
+     */
     public ResponseEntity<?> update(String userId, UserRequest userRequest) {
         UserResponse userResponse = new UserResponse();
         try {
-            if (userId==null || userId.isEmpty()){
+            if (userId == null || userId.isEmpty()) {
                 userResponse.addError(ErrorMessage.BAD_REQUEST);
                 return new ResponseEntity<>(userResponse, HttpStatus.BAD_REQUEST);
             }
@@ -181,10 +187,47 @@ public class UserService {
                 userResponse.addError(ErrorMessage.NOT_FOUND);
                 return new ResponseEntity<>(userResponse, HttpStatus.NOT_FOUND);
             }
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+            User existingUser = optionalUser.get();
+            updateUserFields(existingUser, userRequest);
+            userRepository.save(existingUser);
+            userResponse = mapToDto(existingUser);
+            return new ResponseEntity<>(userResponse, HttpStatus.OK);
         } catch (Exception e) {
             log.error("An error occurred while updating user with email {}", userRequest.getEmail(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    /**
+     * Updates the fields of a User entity based on the UserRequest data.
+     * Only updates fields that have changed.
+     *
+     * @param existingUser the User entity to update
+     * @param userRequest  the request object containing updated user details
+     */
+    private void updateUserFields(User existingUser, UserRequest userRequest) {
+        if (userRequest.getFirstName() != null && !userRequest.getFirstName().equals(existingUser.getFirstName())) {
+            existingUser.setFirstName(userRequest.getFirstName());
+        }
+        if (userRequest.getLastName() != null && !userRequest.getLastName().equals(existingUser.getLastName())) {
+            existingUser.setLastName(userRequest.getLastName());
+        }
+        if (userRequest.getUsername() != null && !userRequest.getUsername().equals(existingUser.getUsername())) {
+            existingUser.setUsername(userRequest.getUsername());
+        }
+        if (userRequest.getEmail() != null && !userRequest.getEmail().equals(existingUser.getEmail())) {
+            existingUser.setEmail(userRequest.getEmail());
+        }
+        if (userRequest.getPhoneNumber() != null && !userRequest.getPhoneNumber().equals(existingUser.getPhoneNumber())) {
+            existingUser.setPhoneNumber(userRequest.getPhoneNumber());
+        }
+        if (userRequest.getStatus() != null && !userRequest.getStatus().equals(existingUser.getUserStatus())) {
+            existingUser.setUserStatus(userRequest.getStatus());
+        }
+        if (userRequest.getRoles() != null && !userRequest.getRoles().isEmpty() && !userRequest.getRoles().get(0).equals(existingUser.getUserRole())) {
+            existingUser.setUserRole(userRequest.getRoles().get(0));
+        }
+        if (userRequest.getNotes() != null && !userRequest.getNotes().equals(existingUser.getNotes())) {
+            existingUser.setNotes(userRequest.getNotes());
         }
     }
 
