@@ -58,7 +58,16 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         return userService.create(bindingResult, userRequest, jwt);
+    }
 
-
+    @PutMapping("{userId}")
+    public ResponseEntity<?> update(@PathVariable String userId, @RequestBody UserRequest userRequest, @AuthenticationPrincipal Jwt jwt) {
+        if (RoleTools.hasAccess(jwt, new ArrayList<>(List.of(
+                UserRoleEnum.ADMIN.name(),
+                UserRoleEnum.USER.name()
+        )))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return userService.update(userId, userRequest);
     }
 }

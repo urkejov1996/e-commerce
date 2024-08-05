@@ -163,11 +163,30 @@ public class UserService {
             userResponse = mapToDto(user);
             return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
         } catch (Exception e) {
-            log.error("An error ocured while creating user with email {}", userRequest.getEmail(), e);
+            log.error("An error occurred while creating user with email {}", userRequest.getEmail(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+
+    public ResponseEntity<?> update(String userId, UserRequest userRequest) {
+        UserResponse userResponse = new UserResponse();
+        try {
+            if (userId==null || userId.isEmpty()){
+                userResponse.addError(ErrorMessage.BAD_REQUEST);
+                return new ResponseEntity<>(userResponse, HttpStatus.BAD_REQUEST);
+            }
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isEmpty()) {
+                userResponse.addError(ErrorMessage.NOT_FOUND);
+                return new ResponseEntity<>(userResponse, HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        } catch (Exception e) {
+            log.error("An error occurred while updating user with email {}", userRequest.getEmail(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     /**
      * Maps a User entity to a UserResponse DTO.
