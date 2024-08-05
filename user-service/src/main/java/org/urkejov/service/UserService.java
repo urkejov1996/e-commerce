@@ -1,5 +1,9 @@
 package org.urkejov.service;
 
+import com.google.firebase.auth.AuthErrorCode;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -7,15 +11,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import org.urkejov.dto.request.UserRequest;
 import org.urkejov.dto.response.UserResponse;
 import org.urkejov.entity.User;
 import org.urkejov.repository.UserRepository;
 import org.urkejov.tools.ErrorMessage;
+import org.urkejov.tools.enums.UserRoleEnum;
+import org.urkejov.tools.enums.UserStatusEnum;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -91,6 +98,76 @@ public class UserService {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Creates a new user based on the provided UserRequest data.
+     *
+     * @param bindingResult the result of the validation of the request
+     * @param userRequest   the request object containing user details
+     * @param jwt           the JWT token of the requesting user
+     * @return ResponseEntity containing the created user data or an error message
+     */
+    public ResponseEntity<?> create(BindingResult bindingResult, UserRequest userRequest, Jwt jwt) {
+        UserResponse userResponse = new UserResponse();
+        if (bindingResult.hasErrors()) {
+            UserResponse finalUserResponse = userResponse;
+            bindingResult.getAllErrors().forEach(error -> {
+                finalUserResponse.addError(error.getDefaultMessage());
+            });
+            return new ResponseEntity<>(userResponse, HttpStatus.BAD_REQUEST);
+        }
+        try {
+            Optional<User> optionalUser = userRepository.findUserByEmail(userRequest.getEmail());
+            if (optionalUser.isPresent()) {
+                userResponse.addError(ErrorMessage.ALREADY_EXIST);
+                return new ResponseEntity<>(userResponse, HttpStatus.BAD_REQUEST);
+            }
+            UserRecord userFirebase = null;
+            try {
+                userFirebase = FirebaseAuth.getInstance().getUserByEmail(userRequest.getEmail());
+            } catch (FirebaseAuthException e) {
+                if (e.getAuthErrorCode() == AuthErrorCode.USER_NOT_FOUND) {
+                    UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                            .setEmail(userRequest.getEmail())
+                            .setEmailVerified(true)
+                            .setPassword(userRequest.getPassword())
+                            .setDisplayName(userRequest.getUsername())
+                            .setDisabled(userRequest.getStatus().equals(UserStatusEnum.INACTIVE));
+                    userFirebase = FirebaseAuth.getInstance().createUser(request);
+                } else {
+                    throw new RuntimeException("Firebase Exception :: " + e.getMessage() + " :: code name :: " + e.getAuthErrorCode().name());
+                }
+            }
+            List<String> roles = new ArrayList<>();
+            if (userRequest.getRoles().get(0) == UserRoleEnum.ADMIN) {
+                roles.add(userRequest.getRoles().get(0).name());
+                roles.add(UserRoleEnum.USER.name());
+            }
+            if (userRequest.getRoles().get(0) == UserRoleEnum.USER) {
+                roles.add(userRequest.getRoles().get(0).name());
+            }
+
+            FirebaseAuth.getInstance().setCustomUserClaims(userFirebase.getUid(), Map.of("roles", Collections.unmodifiableList(roles)));
+            User user = User.builder()
+                    .firstName(userRequest.getFirstName())
+                    .lastName(userRequest.getLastName())
+                    .username(userRequest.getUsername())
+                    .email(userRequest.getEmail())
+                    .phoneNumber(userRequest.getPhoneNumber())
+                    .userStatus(userRequest.getStatus())
+                    .userRole(userRequest.getRoles().get(0))
+                    .firebaseUid(userFirebase.getUid())
+                    .notes(userRequest.getNotes())
+                    .build();
+
+            userResponse = mapToDto(user);
+            return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+        } catch (Exception e) {
+            log.error("An error ocured while creating user with email {}", userRequest.getEmail(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     /**
      * Maps a User entity to a UserResponse DTO.
