@@ -23,6 +23,14 @@ public class UserController {
 
     private final UserService userService;
 
+
+    /**
+     * Fetch a user by their unique ID, only if the authenticated user has the appropriate role.
+     *
+     * @param userId The ID of the user to be fetched.
+     * @param jwt    The JWT token containing user authentication details.
+     * @return ResponseEntity containing the user data or an error message if unauthorized.
+     */
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUser(@PathVariable String userId, @AuthenticationPrincipal Jwt jwt) {
         if (RoleTools.hasAccess(jwt, new ArrayList<>(List.of(
@@ -34,6 +42,15 @@ public class UserController {
         return userService.getUser(userId);
     }
 
+    /**
+     * Fetch all users, with optional pagination and sorting, only if the authenticated user has the appropriate role.
+     *
+     * @param size  The number of users to fetch per page (optional).
+     * @param sortBy The field to sort the results by (optional).
+     * @param page  The page number to fetch (optional).
+     * @param jwt   The JWT token containing user authentication details.
+     * @return ResponseEntity containing a list of users or an error message if unauthorized.
+     */
     @GetMapping()
     public ResponseEntity<?> getAllUsers(
             @RequestParam Optional<Integer> size,
@@ -49,6 +66,14 @@ public class UserController {
         return userService.getAllUsers(size, sortBy, page);
     }
 
+    /**
+     * Create a new user, only if the authenticated user has the appropriate role.
+     *
+     * @param userRequest   The data for the new user.
+     * @param bindingResult Binding result for validation errors.
+     * @param jwt           The JWT token containing user authentication details.
+     * @return ResponseEntity containing the created user data or an error message if unauthorized.
+     */
     @PostMapping()
     public ResponseEntity<?> create(@RequestBody UserRequest userRequest, BindingResult bindingResult, @AuthenticationPrincipal Jwt jwt) {
         if (RoleTools.hasAccess(jwt, new ArrayList<>(List.of(
@@ -60,6 +85,14 @@ public class UserController {
         return userService.create(bindingResult, userRequest, jwt);
     }
 
+    /**
+     * Update an existing user by their unique ID, only if the authenticated user has the appropriate role.
+     *
+     * @param userId      The ID of the user to be updated.
+     * @param userRequest The new data for the user.
+     * @param jwt         The JWT token containing user authentication details.
+     * @return ResponseEntity containing the updated user data or an error message if unauthorized.
+     */
     @PutMapping("{userId}")
     public ResponseEntity<?> update(@PathVariable String userId, @RequestBody UserRequest userRequest, @AuthenticationPrincipal Jwt jwt) {
         if (RoleTools.hasAccess(jwt, new ArrayList<>(List.of(
